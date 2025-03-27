@@ -1,0 +1,10 @@
+logging:
+  level:
+    ROOT: INFO
+spring:
+  application:
+    name: spring-boot-validation
+  datasource:
+    url: jdbc:h2:mem:test;MODE=LEGACY;
+  h2:
+    console.enabled: true
