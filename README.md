@@ -1,3 +1,5 @@
+[![Java CI with Gradle](https://github.com/chrberndt/spring-boot-validation/actions/workflows/gradle.yml/badge.svg)](https://github.com/chrberndt/spring-boot-validation/actions/workflows/gradle.yml)
+
 # README
 
 ## How To Use
