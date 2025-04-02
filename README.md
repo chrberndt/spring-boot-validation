@@ -13,4 +13,25 @@ User Name: sa # default
 Password: # empty (default)
 ```
 
+## Validation Behaviour
+
+Sending a POST request
+
+### Without Request Body
+
+```bash
+curl --header "Content-Type: application/json" --request POST --silent  http://localhost:8080/users | jq
+```
+
+will result in the following error response:
+
+```json
+{
+  "type": "about:blank",
+  "title": "Bad Request",
+  "status": 400,
+  "detail": "Failed to read request",
+  "instance": "/users"
+}
+```
 
