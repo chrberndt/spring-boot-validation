@@ -20,7 +20,12 @@ Sending a POST request
 ### Without Request Body
 
 ```bash
-curl --header "Content-Type: application/json" --request POST --silent  http://localhost:8080/users | jq
+curl \
+  --header "Content-Type: application/json" \
+  --request POST \
+  --silent \
+  http://localhost:8080/users \
+| jq
 ```
 
 will result in the following error response:
