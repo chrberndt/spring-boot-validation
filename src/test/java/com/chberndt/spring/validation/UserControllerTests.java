@@ -41,23 +41,6 @@ public class UserControllerTests {
   }
 
   @Test
-  public void shouldNotCreateUserWithEmptyRequestBody() {
-
-    HttpHeaders headers = new HttpHeaders();
-    headers.add(HttpHeaders.CONTENT_TYPE, "application/json");
-
-    HttpEntity<String> httpEntity = new HttpEntity<>(null, headers);
-    ResponseEntity<String> response = restTemplate.postForEntity("/users", httpEntity,
-        String.class);
-
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-
-    DocumentContext documentContext = JsonPath.parse(response.getBody());
-
-    assertThat((String) documentContext.read("$.detail")).isEqualTo("Failed to read request");
-  }
-
-  @Test
   public void shouldCreateUserWithValidFields() {
 
     HttpHeaders headers = new HttpHeaders();
@@ -73,6 +56,23 @@ public class UserControllerTests {
     assertThat(location).isNotNull();
     assertThat(location.getPath()).isEqualTo("/users/1");
 
+  }
+
+  @Test
+  public void shouldNotCreateUserWithEmptyRequestBody() {
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.add(HttpHeaders.CONTENT_TYPE, "application/json");
+
+    HttpEntity<String> httpEntity = new HttpEntity<>(null, headers);
+    ResponseEntity<String> response = restTemplate.postForEntity("/users", httpEntity,
+        String.class);
+
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+
+    DocumentContext documentContext = JsonPath.parse(response.getBody());
+
+    assertThat((String) documentContext.read("$.detail")).isEqualTo("Failed to read request");
   }
 
   @Test
