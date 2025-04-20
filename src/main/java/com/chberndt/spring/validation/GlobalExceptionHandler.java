@@ -33,7 +33,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
     problemDetail.setProperty("error", HttpStatus.BAD_REQUEST.getReasonPhrase());
-    problemDetail.setProperty("errors", ex.getBindingResult().getAllErrors());
+    problemDetail.setProperty("errors", ex.getBindingResult().getFieldErrors());
 
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail);
   }
