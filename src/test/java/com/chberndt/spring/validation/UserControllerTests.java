@@ -5,8 +5,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import java.net.URI;
-import org.json.JSONException;
-import org.json.JSONObject;
+import java.util.LinkedHashMap;
+import net.minidev.json.JSONArray;
+import net.minidev.json.JSONObject;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,17 +18,21 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+/**
+ * @author Christian Berndt
+ */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class UserControllerTests {
 
   private static final JSONObject emptyUser = new JSONObject();
   private static final JSONObject invalidUser = new JSONObject();
   private static final JSONObject validUser = new JSONObject();
+
   @Autowired
   TestRestTemplate restTemplate;
 
   @BeforeAll
-  public static void setup() throws JSONException {
+  public static void setup() {
 
     invalidUser.put("email", "invalid");
     invalidUser.put("userName", "inval!d");
@@ -50,8 +55,7 @@ public class UserControllerTests {
 
     DocumentContext documentContext = JsonPath.parse(response.getBody());
 
-    assertThat((String) documentContext.read("$.detail"))
-        .isEqualTo("Failed to read request");
+    assertThat((String) documentContext.read("$.detail")).isEqualTo("Failed to read request");
   }
 
   @Test
@@ -87,8 +91,8 @@ public class UserControllerTests {
 
     DocumentContext documentContext = JsonPath.parse(response.getBody());
 
-    assertThat((String)documentContext.read("$.detail"))
-        .isEqualTo("Unique index or primary key violation");
+    assertThat((String) documentContext.read("$.detail")).isEqualTo(
+        "Unique index or primary key violation");
   }
 
   @Test
@@ -106,12 +110,12 @@ public class UserControllerTests {
 
     DocumentContext documentContext = JsonPath.parse(response.getBody());
 
-    assertThat((String)documentContext.read("$.detail"))
-        .isEqualTo("Unique index or primary key violation");
+    assertThat((String) documentContext.read("$.detail")).isEqualTo(
+        "Unique index or primary key violation");
   }
 
   @Test
-  public void shouldNotCreateUserWithInvalidFields() {
+  public void shouldNotCreateUserWithInvalidFields() throws Exception {
 
     HttpHeaders headers = new HttpHeaders();
     headers.add(HttpHeaders.CONTENT_TYPE, "application/json");
@@ -127,14 +131,20 @@ public class UserControllerTests {
     assertThat((String) documentContext.read("$.error")).isEqualTo(
         HttpStatus.BAD_REQUEST.getReasonPhrase());
 
-    assertThat((Integer) documentContext.read("$.errors.length()"))
-        .isEqualTo(2);
-    assertThat(documentContext.read("$.errors[?(@.field == 'email')].defaultMessage")
-        .toString())
-        .isEqualTo("[\"must be a well-formed email address\"]");
-    assertThat(documentContext.read("$.errors[?(@.field == 'userName')].defaultMessage")
-        .toString())
-        .isEqualTo("[\"must match \\\"^[a-zA-Z0-9]*$\\\"\"]");
+    JSONArray errors = documentContext.read("$.errors");
+
+    assertThat(errors.size()).isEqualTo(2);
+
+    LinkedHashMap<String, Object> emailFieldError = getFieldError(errors, "email");
+
+    assertThat(emailFieldError).isNotNull();
+    assertThat(emailFieldError.get("defaultMessage")).isEqualTo(
+        "must be a well-formed email address");
+
+    LinkedHashMap<String, Object> userNameFieldError = getFieldError(errors, "userName");
+
+    assertThat(userNameFieldError).isNotNull();
+    assertThat(userNameFieldError.get("defaultMessage")).isEqualTo("must match \"^[a-zA-Z0-9]*$\"");
   }
 
   @Test
@@ -154,14 +164,24 @@ public class UserControllerTests {
     assertThat((String) documentContext.read("$.error")).isEqualTo(
         HttpStatus.BAD_REQUEST.getReasonPhrase());
 
-    assertThat((Integer) documentContext.read("$.errors.length()"))
-        .isEqualTo(2);
-    assertThat(documentContext.read("$.errors[?(@.field == 'email')].defaultMessage")
-        .toString())
-        .isEqualTo("[\"must not be empty\"]");
-    assertThat(documentContext.read("$.errors[?(@.field == 'userName')].defaultMessage")
-        .toString())
-        .isEqualTo("[\"must not be empty\"]");
+    JSONArray errors = documentContext.read("$.errors");
+
+    assertThat(errors.size()).isEqualTo(2);
+
+    LinkedHashMap<String, Object> emailFieldError = getFieldError(errors, "email");
+
+    assertThat(emailFieldError).isNotNull();
+    assertThat(emailFieldError.get("defaultMessage")).isEqualTo("must not be empty");
+
+    LinkedHashMap<String, Object> userNameFieldError = getFieldError(errors, "userName");
+
+    assertThat(userNameFieldError).isNotNull();
+    assertThat(userNameFieldError.get("defaultMessage")).isEqualTo("must not be empty");
+  }
+
+  private LinkedHashMap<String, Object> getFieldError(JSONArray errors, String field) {
+    return errors.stream().filter(LinkedHashMap.class::isInstance).map(LinkedHashMap.class::cast)
+        .filter(map -> map.get("field").equals(field)).findFirst().orElse(null);
   }
 
 }
